@@ -92,4 +92,32 @@ function getCoordinates(country) {
     };
     return coords[country];
 }
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<script>
+    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("YOUR_API_KEY", "YOUR_REGION");
+    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+    recognizer.recognizeOnceAsync(result => {
+        console.log("Texte détecté :", result.text);
+        alert("Texte détecté : " + result.text);
+    });
+</script>
+<button onclick="recognizer.startContinuousRecognitionAsync()">🎤 Démarrer</button>
+    
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<script>
+    function speakText() {
+        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("zmLmiBOsLW39ZwJ15f2rPyF1nwNSf2Cud8OYSA8CFvqJfvKklNhRJQQJ99BCACYeBjFXJ3w3AAAYACOGT20O", "eastus");
+        speechConfig.speechSynthesisVoiceName = "fr-FR-DeniseNeural"; // Voix en français
+        const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig);
+
+        synthesizer.speakTextAsync("Bonjour, bienvenue sur mon site !", result => {
+            console.log("Texte prononcé :", result);
+        });
+    }
+</script>
+<button onclick="speakText()">🔊 Écouter</button>
+
+
 
