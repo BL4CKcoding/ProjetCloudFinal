@@ -92,32 +92,39 @@ function getCoordinates(country) {
     };
     return coords[country];
 }
-<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-<script>
+// Fonction pour initialiser le service Speech
+function initializeSpeechService() {
     const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("YOUR_API_KEY", "YOUR_REGION");
-    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-    const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
-    recognizer.recognizeOnceAsync(result => {
-        console.log("Texte détecté :", result.text);
-        alert("Texte détecté : " + result.text);
-    });
-</script>
-<button onclick="recognizer.startContinuousRecognitionAsync()">🎤 Démarrer</button>
+    speechConfig.speechSynthesisVoiceName = "fr-FR-HenriNeural"; // Choisis une voix en français
     
-<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-<script>
-    function speakText() {
-        const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("zmLmiBOsLW39ZwJ15f2rPyF1nwNSf2Cud8OYSA8CFvqJfvKklNhRJQQJ99BCACYeBjFXJ3w3AAAYACOGT20O", "eastus");
-        speechConfig.speechSynthesisVoiceName = "fr-FR-DeniseNeural"; // Voix en français
-        const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig);
+    const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+    const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
 
-        synthesizer.speakTextAsync("Bonjour, bienvenue sur mon site !", result => {
-            console.log("Texte prononcé :", result);
-        });
-    }
-</script>
-<button onclick="speakText()">🔊 Écouter</button>
+    return synthesizer;
+}
+
+// Fonction pour lancer la synthèse vocale avec Azure
+function speakTextWithAzure() {
+    const synthesizer = initializeSpeechService();
+    
+    // Récupère le texte du discours
+    const textToRead = document.getElementById('project-speech').innerText;
+
+    // Lance la synthèse vocale
+    synthesizer.speakTextAsync(
+        textToRead,
+        function (result) {
+            if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                console.log("Le discours a été synthétisé avec succès.");
+            } else {
+                console.error("Une erreur s'est produite lors de la synthèse vocale : " + result.errorDetails);
+            }
+        },
+        function (error) {
+            console.error("Erreur Speech Service : " + error.details);
+        }
+    );
+}
 
 
 
