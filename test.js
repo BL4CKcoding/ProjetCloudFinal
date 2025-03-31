@@ -1,12 +1,8 @@
-// Initialisation de la carte
 var map = L.map('map').setView([20, 0], 2);
-
-// Ajout du fond de carte OpenStreetMap
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Dictionnaire des salutations par pays
 var salutations = {
     "France": "Bonjour",
     "Espagne": "Hola",
@@ -42,18 +38,20 @@ var salutations = {
     "Philippines": "Kumusta!"
 };
 
-
-// Ajout des marqueurs sur la carte
+// Ajout des marqueurs 
 for (var pays in salutations) {
     L.marker(getCoordinates(pays)).addTo(map)
         .bindPopup(`<b>${pays}</b><br>${salutations[pays]}`)
-        .on('click', function(e) {
+        .on('click', function (e) {
             var country = this.getPopup().getContent().split("<br>")[0].replace("<b>", "").replace("</b>", "");
+            var language = getLanguageForCountry(country);
             document.getElementById('salutation').innerText = "Dans " + country + ", on dit : " + salutations[country];
-            speakText(salutations[country]);
+            document.getElementById('speakBtn').style.display = "inline-block"; 
+            document.getElementById('speakBtn').onclick = function () {
+                speakText(salutations[country], language); 
+            };
         });
 }
-
 
 function getCoordinates(country) {
     var coords = {
@@ -92,39 +90,104 @@ function getCoordinates(country) {
     };
     return coords[country];
 }
-// Fonction pour initialiser le service Speech
-function initializeSpeechService() {
-    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("YOUR_API_KEY", "YOUR_REGION");
-    speechConfig.speechSynthesisVoiceName = "fr-FR-HenriNeural"; // Choisis une voix en français
-    
+
+// speech service 
+function initializeSpeechService(language) {
+    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("uLNOpO3U7fQlqIesUiA256thChD7isuuc4bpY134GbYs109jS3SSJQQJ99BCACYeBjFXJ3w3AAAYACOGZbJf", "eastus");
+    let voiceName = "";
+    switch(language) {
+        case "fr-FR":
+            voiceName = "fr-FR-HenriNeural";
+            break;
+        case "es-ES":
+            voiceName = "es-ES-AlvaroNeural";
+            break;
+        case "de-DE":
+            voiceName = "de-DE-KatjaNeural";
+            break;
+        case "ja-JP":
+            voiceName = "ja-JP-NanamiNeural";
+            break;
+        case "zh-CN":
+            voiceName = "zh-CN-XiaoxiaoNeural";
+            break;
+        case "ru-RU":
+            voiceName = "ru-RU-DaryaNeural";
+            break;
+        case "pt-BR":
+            voiceName = "pt-BR-AntonioNeural";
+            break;
+        case "it-IT":
+            voiceName = "it-IT-GiorgioNeural";
+            break;
+        case "hi-IN":
+            voiceName = "hi-IN-AditiNeural";
+            break;
+        case "en-US":
+            voiceName = "en-US-GuyNeural";
+            break;
+        default:
+            voiceName = "en-US-GuyNeural";
+            break;
+    }
+    speechConfig.speechSynthesisVoiceName = voiceName;
     const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
     const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
 
     return synthesizer;
 }
-
-// Fonction pour lancer la synthèse vocale avec Azure
-function speakTextWithAzure() {
-    const synthesizer = initializeSpeechService();
-    
-    // Récupère le texte du discours
-    const textToRead = document.getElementById('project-speech').innerText;
-
-    // Lance la synthèse vocale
+// azure speech
+function speakText(salutation, language) {
+    const synthesizer = initializeSpeechService(language);
     synthesizer.speakTextAsync(
-        textToRead,
+        salutation,
         function (result) {
             if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
                 console.log("Le discours a été synthétisé avec succès.");
             } else {
-                console.error("Une erreur s'est produite lors de la synthèse vocale : " + result.errorDetails);
+                console.error("Erreur lors de la synthèse vocale : " + result.errorDetails);
             }
         },
         function (error) {
-            console.error("Erreur Speech Service : " + error.details);
+            console.error("Erreur Azure Speech Service : " + error.details);
+            alert("Une erreur est survenue avec le service de synthèse vocale Azure : " + error.details);
         }
     );
 }
-
-
-
+function getLanguageForCountry(country) {
+    const languages = {
+        "France": "fr-FR",
+        "Espagne": "es-ES",
+        "Allemagne": "de-DE",
+        "Japon": "ja-JP",
+        "Chine": "zh-CN",
+        "Russie": "ru-RU",
+        "Brésil": "pt-BR",
+        "Italie": "it-IT",
+        "Inde": "hi-IN",
+        "Tunisie": "fr-FR",
+        "Algérie": "fr-FR",
+        "Maroc": "fr-FR",
+        "Libye": "ar-LY",
+        "Égypte": "ar-EG",
+        "États-Unis": "en-US",
+        "Canada": "en-CA",
+        "Mexique": "es-MX",
+        "Australie": "en-AU",
+        "Royaume-Uni": "en-GB",
+        "Irlande": "en-IE",
+        "Corée du Sud": "ko-KR",
+        "Nigeria": "en-NG",
+        "Pays-Bas": "nl-NL",
+        "Finlande": "fi-FI",
+        "Argentine": "es-AR",
+        "Colombie": "es-CO",
+        "Portugal": "pt-PT",
+        "Pologne": "pl-PL",
+        "Grèce": "el-GR",
+        "Islande": "is-IS",
+        "Venezuela": "es-VE",
+        "Philippines": "tl-PH"
+    };
+    return languages[country] || "en-US";
+}
